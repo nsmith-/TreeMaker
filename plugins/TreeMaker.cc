@@ -32,12 +32,22 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
 {
   usesResource("TFileService");
 
-  for (auto name : iConfig.getParameterNames())
-    std::cout << name << std::endl;
+  edm::LogPrint("TreeMaker") << "Parameter names:" << std::endl << "------------------------------";
+  std::function<void(const edm::ParameterSet&, int)> dumpPSetNames = [&dumpPSetNames](const edm::ParameterSet& pset, int indent) {
+    std::string spaces{};
+    spaces.resize(indent*2, ' ');
+    for (auto name : pset.getParameterNames()) {
+      edm::LogPrint("TreeMaker") << spaces << name;
+      if ( pset.existsAs<edm::ParameterSet>(name) ) {
+        dumpPSetNames(pset.getParameterSet(name), indent+1);
+      }
+    }
+  };
+  dumpPSetNames(iConfig, 0);
 
-  std::string treeName{"asdf"};
-  std::string treeTitle{"asdf"};
-  std::unique_ptr<TTree> newTree{new TTree(treeName.c_str(), treeTitle.c_str())};
+  std::string treeName{iConfig.getParameter<std::string>("@module_label")};
+  std::string treeTitle{treeName};
+  tree_ = std::unique_ptr<TTree>{new TTree(treeName.c_str(), treeTitle.c_str())};
 }
 
 
