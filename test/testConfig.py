@@ -19,12 +19,21 @@ process.TFileService = cms.Service(
 
 process.met = cms.EDAnalyzer('TreeMaker',
     candidates = cms.InputTag("slimmedMETs"),
-    function = cms.string("pt-uncorrectedPt"),
+    functions = cms.PSet(
+        pt = cms.string("pt"),
+        eta = cms.string("eta"),
+        phi = cms.string("phi"),
+        ptdiff = cms.string("pt-uncorrectedPt"),
+    )
 )
 
 process.jet = cms.EDAnalyzer('TreeMaker',
     candidates = cms.InputTag("slimmedJets"),
-    function = cms.string("pt"),
+    functions = cms.PSet(
+        pt = cms.string("pt"),
+        eta = cms.string("eta"),
+        phi = cms.string("phi"),
+    )
 )
 
 process.p = cms.Path(process.met+process.jet)
