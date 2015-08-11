@@ -5,6 +5,7 @@
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -38,8 +39,7 @@ class TreeMaker : public edm::one::EDAnalyzer<edm::one::SharedResources> {
       public:
         CandidateCollectionFunction(TTree * tree, std::string functionName, std::string functionString) :
           function_(functionString),
-          vectorBranch_(tree->Branch(functionName.c_str(), "std::vector<float>", &vector_)),
-          countBranch_(tree->Branch(("n"+functionName).c_str(), &count_))
+          vectorBranch_(tree->Branch(functionName.c_str(), "std::vector<float>", &vector_))
         {};
 
         // Allow no copy/move, so memory location will not change
@@ -54,20 +54,51 @@ class TreeMaker : public edm::one::EDAnalyzer<edm::one::SharedResources> {
           for ( const auto& candidate : candidates ) {
             vector_.push_back(function_(candidate));
           }
-          count_ = vector_.size();
         };
 
       private:
         StringObjectFunction<reco::Candidate, true> function_;
         // Branches owned by tree
         TBranch * vectorBranch_;
-        TBranch * countBranch_;
         std::vector<float> vector_;
-        int count_;
     };
 
-    edm::EDGetTokenT<reco::CandidateView> token_;
-    std::vector<std::unique_ptr<CandidateCollectionFunction>> functions_;
+    class CandidateCollectionBranchSet {
+      public:
+        CandidateCollectionBranchSet(TTree * tree, std::string collectionName, const edm::ParameterSet& iConfig, edm::ConsumesCollector cc) {
+          collectionToken_ = cc.consumes<reco::CandidateView>(iConfig.getParameter<edm::InputTag>("candidates"));
+          for ( auto functionName : iConfig.getParameterSet("functions").getParameterNamesForType<std::string>() ) {
+            auto functionString = iConfig.getParameterSet("functions").getParameter<std::string>(functionName);
+            functions_.push_back(std::unique_ptr<CandidateCollectionFunction>(new CandidateCollectionFunction(tree, collectionName+"_"+functionName, functionString)));
+          }
+          collectionSizeBranch_ = tree->Branch(("n"+collectionName).c_str(), &collectionSize_);
+        };
+
+        // Allow no copy/move, so memory location will not change
+        // TODO: in principle we should be able to move, and update branch address later
+        CandidateCollectionBranchSet(const CandidateCollectionBranchSet&) = delete;
+        CandidateCollectionBranchSet& operator=(const CandidateCollectionBranchSet&) = delete;
+        CandidateCollectionBranchSet(const CandidateCollectionBranchSet&& previous) = delete;
+        CandidateCollectionBranchSet& operator=(const CandidateCollectionBranchSet&&) = delete;
+
+        void fill(const edm::Event& iEvent) {
+          edm::Handle<reco::CandidateView> candidates;
+          iEvent.getByToken(collectionToken_, candidates);
+
+          for ( auto& f : functions_ ) {
+            f->evaluate(*candidates);
+          }
+
+          collectionSize_ = candidates->size();
+        };
+
+      private:
+        edm::EDGetTokenT<reco::CandidateView> collectionToken_;
+        std::vector<std::unique_ptr<CandidateCollectionFunction>> functions_;
+        TBranch * collectionSizeBranch_;
+        int collectionSize_;
+    };
+
 
     // Owned by TFileService
     TTree * tree_;
@@ -76,10 +107,10 @@ class TreeMaker : public edm::one::EDAnalyzer<edm::one::SharedResources> {
     int lumi_;
     int event_;
 
+    std::vector<std::unique_ptr<CandidateCollectionBranchSet>> collections_;
 };
 
-TreeMaker::TreeMaker(const edm::ParameterSet& iConfig) :
-  token_(consumes<reco::CandidateView>(iConfig.getParameter<edm::InputTag>("candidates")))
+TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
 {
   usesResource("TFileService");
   std::string treeName{iConfig.getUntrackedParameter<std::string>("treeName", "Ntuple")};
@@ -91,9 +122,9 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig) :
   tree_->Branch("lumi", &lumi_, "lumi/i");
   tree_->Branch("event", &event_, "event/l");
 
-  for ( auto functionName : iConfig.getParameterSet("functions").getParameterNamesForType<std::string>() ) {
-    auto functionString = iConfig.getParameterSet("functions").getParameter<std::string>(functionName);
-    functions_.push_back(std::unique_ptr<CandidateCollectionFunction>(new CandidateCollectionFunction(tree_, functionName, functionString)));
+  const edm::ParameterSet collections = iConfig.getParameterSet("collections");
+  for ( auto collectionName : collections.getParameterNamesForType<edm::ParameterSet>() ) {
+    collections_.push_back(std::unique_ptr<CandidateCollectionBranchSet>(new CandidateCollectionBranchSet(tree_, collectionName, collections.getParameterSet(collectionName), consumesCollector())));
   }
 }
 
@@ -109,11 +140,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   lumi_ = iEvent.id().luminosityBlock();
   event_ = iEvent.id().event();
 
-  edm::Handle<reco::CandidateView> candidates;
-  iEvent.getByToken(token_, candidates);
-
-  for ( auto& f : functions_ ) {
-    f->evaluate(*candidates);
+  for ( auto& collection : collections_ ) {
+    collection->fill(iEvent);
   }
 
   tree_->Fill();

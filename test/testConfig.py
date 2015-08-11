@@ -17,23 +17,25 @@ process.TFileService = cms.Service(
     fileName = cms.string("testConfig.root")
 )
 
-process.met = cms.EDAnalyzer('TreeMaker',
-    candidates = cms.InputTag("slimmedMETs"),
-    functions = cms.PSet(
-        pt = cms.string("pt"),
-        eta = cms.string("eta"),
-        phi = cms.string("phi"),
-        ptdiff = cms.string("pt-uncorrectedPt"),
+process.demo = cms.EDAnalyzer('TreeMaker',
+    collections = cms.PSet(
+        Jets = cms.PSet(
+            candidates = cms.InputTag("slimmedJets"),
+            functions = cms.PSet(
+                pt = cms.string("pt"),
+                eta = cms.string("eta"),
+                phi = cms.string("phi"),
+            )
+        ),
+        MET = cms.PSet(
+            candidates = cms.InputTag("slimmedMETs"),
+            functions = cms.PSet(
+                pt = cms.string("pt"),
+                eta = cms.string("eta"),
+                phi = cms.string("phi"),
+            )
+        )
     )
 )
 
-process.jet = cms.EDAnalyzer('TreeMaker',
-    candidates = cms.InputTag("slimmedJets"),
-    functions = cms.PSet(
-        pt = cms.string("pt"),
-        eta = cms.string("eta"),
-        phi = cms.string("phi"),
-    )
-)
-
-process.p = cms.Path(process.met+process.jet)
+process.p = cms.Path(process.demo)
