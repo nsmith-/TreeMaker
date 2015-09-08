@@ -3,9 +3,9 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Demo")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.MessageLogger.cerr.INFO = cms.untracked.PSet( reportEvery = cms.untracked.int32(1) )
+process.MessageLogger.cerr.FwkReport = cms.untracked.PSet( reportEvery = cms.untracked.int32(1000) )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
@@ -15,7 +15,7 @@ process.source = cms.Source("PoolSource",
 
 process.TFileService = cms.Service(
     "TFileService",
-    fileName = cms.string("testConfig.root")
+    fileName = cms.string("exampleZeeConfig.root")
 )
 
 process.decentElectrons = cms.EDFilter("PATElectronRefSelector",
@@ -33,7 +33,6 @@ process.ZeeCandidates = cms.EDProducer("CandViewShallowCloneCombiner",
 process.ZeeSequence = cms.Sequence(process.decentElectrons*process.ZeeCandidates)
 
 process.demo = cms.EDAnalyzer('TreeMaker',
-    flattenByEvent = cms.bool(False),
     rowKey = cms.string('Zcandidate'),
     collections = cms.PSet(
         Zcandidate = cms.PSet(

@@ -18,6 +18,7 @@ process.TFileService = cms.Service(
 )
 
 process.demo = cms.EDAnalyzer('TreeMaker',
+    rowKey = cms.string(''),
     collections = cms.PSet(
         Jets = cms.PSet(
             candidates = cms.InputTag("slimmedJets"),
