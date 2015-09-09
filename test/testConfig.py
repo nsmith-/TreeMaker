@@ -36,6 +36,16 @@ process.demo = cms.EDAnalyzer('TreeMaker',
                 phi = cms.string("phi"),
             )
         )
+    ),
+    specials = cms.PSet(
+        vertices = cms.PSet(
+            productType = cms.string("vector<reco::Vertex>"),
+            inputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
+            functions = cms.PSet(
+                size = cms.string("size"),
+                firstVertexNTracks = cms.string("at(0).nTracks()")
+            )
+        )
     )
 )
 
