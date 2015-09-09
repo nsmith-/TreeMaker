@@ -8,7 +8,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        '/store/data/Run2015B/ZeroBias/MINIAOD/PromptReco-v1/000/251/244/00000/4CE7A263-0728-E511-818D-02163E01379D.root'
+        '/store/data/Run2015C/DoubleEG/MINIAOD/PromptReco-v1/000/254/790/00000/765F69B4-3F4A-E511-B174-02163E01426E.root'
     ),
 )
 
@@ -38,12 +38,14 @@ process.demo = cms.EDAnalyzer('TreeMaker',
         )
     ),
     specials = cms.PSet(
-        vertices = cms.PSet(
+        vertex = cms.PSet(
             productType = cms.string("vector<reco::Vertex>"),
             inputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
             functions = cms.PSet(
-                size = cms.string("size"),
-                firstVertexNTracks = cms.string("at(0).nTracks()")
+                collectionSize = cms.string("size"),
+                ndof = cms.string("at(0).ndof()"),
+                chi2 = cms.string("at(0).chi2()"),
+                x = cms.string("at(0).x()"),
             )
         )
     )
