@@ -1,9 +1,9 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "StringObjectFunctionBranch.h"
 
-class ObjectBranchSet {
+class GenericObjectBranchSet {
   public:
-    ObjectBranchSet(TTree * tree, std::string collectionName, const edm::ParameterSet& iConfig, edm::ConsumesCollector cc);
+    GenericObjectBranchSet(TTree * tree, std::string collectionName, const edm::ParameterSet& iConfig, edm::ConsumesCollector cc);
 
     void fill(const edm::Event& iEvent);
 

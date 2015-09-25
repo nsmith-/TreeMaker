@@ -15,7 +15,7 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "Analysis/TreeMaker/src/ObjectBranchSet.h"
+#include "Analysis/TreeMaker/src/GenericObjectBranchSet.h"
 #include "Analysis/TreeMaker/src/CandidateBranchSet.h"
 #include "Analysis/TreeMaker/src/CandidateCollectionBranchSet.h"
 
@@ -44,7 +44,7 @@ class TreeMaker : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 
     std::unique_ptr<CandidateBranchSet> rowKeyCollection_;
     std::vector<std::unique_ptr<CandidateCollectionBranchSet>> collections_;
-    std::vector<std::unique_ptr<ObjectBranchSet>> specials_;
+    std::vector<std::unique_ptr<GenericObjectBranchSet>> specials_;
 };
 
 TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
@@ -77,7 +77,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   if ( iConfig.existsAs<edm::ParameterSet>("specials") ) {
     const edm::ParameterSet specials = iConfig.getParameterSet("specials");
     for ( auto collectionName : specials.getParameterNamesForType<edm::ParameterSet>() ) {
-      specials_.emplace_back(new ObjectBranchSet(tree_, collectionName, specials.getParameterSet(collectionName), consumesCollector()));
+      specials_.emplace_back(new GenericObjectBranchSet(tree_, collectionName, specials.getParameterSet(collectionName), consumesCollector()));
     }
   }
 }

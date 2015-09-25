@@ -4,9 +4,9 @@
 #include "FWCore/Utilities/interface/TypeID.h"
 #include "FWCore/Utilities/interface/TypeToGet.h"
 
-#include "ObjectBranchSet.h"
+#include "GenericObjectBranchSet.h"
 
-ObjectBranchSet::ObjectBranchSet(TTree * tree, std::string collectionName, const edm::ParameterSet& iConfig, edm::ConsumesCollector cc) {
+GenericObjectBranchSet::GenericObjectBranchSet(TTree * tree, std::string collectionName, const edm::ParameterSet& iConfig, edm::ConsumesCollector cc) {
   typeName_ = iConfig.getParameter<std::string>("productType");
   inputTag_ = iConfig.getParameter<edm::InputTag>("inputTag");
 
@@ -24,7 +24,7 @@ ObjectBranchSet::ObjectBranchSet(TTree * tree, std::string collectionName, const
 }
 
 void
-ObjectBranchSet::fill(const edm::Event& iEvent) {
+GenericObjectBranchSet::fill(const edm::Event& iEvent) {
   edm::GenericHandle object(typeName_);
   iEvent.getByLabel(inputTag_, object);
 
