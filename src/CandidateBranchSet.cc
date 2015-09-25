@@ -15,9 +15,10 @@ CandidateFunction::evaluate(const reco::Candidate& candidate) {
 };
 
 CandidateBranchSet::CandidateBranchSet(TTree * tree, std::string collectionName, const edm::ParameterSet& iConfig, edm::ConsumesCollector cc) {
-  collectionToken_ = cc.consumes<reco::CandidateView>(iConfig.getParameter<edm::InputTag>("candidates"));
-  for ( auto functionName : iConfig.getParameterSet("functions").getParameterNamesForType<std::string>() ) {
-    auto functionString = iConfig.getParameterSet("functions").getParameter<std::string>(functionName);
+  collectionToken_ = cc.consumes<reco::CandidateView>(iConfig.getParameter<edm::InputTag>("collection"));
+  auto& branches = iConfig.getParameterSet("branches");
+  for ( auto functionName : branches.getParameterNamesForType<std::string>() ) {
+    auto functionString = branches.getParameter<std::string>(functionName);
     functions_.emplace_back(new CandidateFunction(tree, collectionName+"_"+functionName, functionString));
   }
   tree_ = tree;

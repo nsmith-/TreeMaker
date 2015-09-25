@@ -32,12 +32,12 @@ process.ZeeCandidates = cms.EDProducer("CandViewShallowCloneCombiner",
 
 process.ZeeSequence = cms.Sequence(process.decentElectrons*process.ZeeCandidates)
 
-process.demo = cms.EDAnalyzer('TreeMaker',
+process.treeMaker = cms.EDAnalyzer('TreeMaker',
     rowKey = cms.string('Zcandidate'),
     collections = cms.PSet(
         Zcandidate = cms.PSet(
-            candidates = cms.InputTag("ZeeCandidates"),
-            functions = cms.PSet(
+            collection = cms.InputTag("ZeeCandidates"),
+            branches = cms.PSet(
                 pt = cms.string("pt"),
                 eta = cms.string("eta"),
                 phi = cms.string("phi"),
@@ -51,24 +51,24 @@ process.demo = cms.EDAnalyzer('TreeMaker',
             )
         ),
         decentElectrons = cms.PSet(
-            candidates = cms.InputTag("decentElectrons"),
-            functions = cms.PSet(
+            collection = cms.InputTag("decentElectrons"),
+            branches = cms.PSet(
                 pt = cms.string("pt"),
                 eta = cms.string("eta"),
                 phi = cms.string("phi"),
             )
         ),
         Jets = cms.PSet(
-            candidates = cms.InputTag("slimmedJets"),
-            functions = cms.PSet(
+            collection = cms.InputTag("slimmedJets"),
+            branches = cms.PSet(
                 pt = cms.string("pt"),
                 eta = cms.string("eta"),
                 phi = cms.string("phi"),
             )
         ),
         MET = cms.PSet(
-            candidates = cms.InputTag("slimmedMETs"),
-            functions = cms.PSet(
+            collection = cms.InputTag("slimmedMETs"),
+            branches = cms.PSet(
                 pt = cms.string("pt"),
                 eta = cms.string("eta"),
                 phi = cms.string("phi"),
@@ -89,6 +89,6 @@ process.demo = cms.EDAnalyzer('TreeMaker',
     )
 )
 
-process.p = cms.Path(process.ZeeSequence*process.demo)
+process.p = cms.Path(process.ZeeSequence*process.treeMaker)
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
